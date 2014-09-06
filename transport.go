@@ -9,6 +9,9 @@ import (
 	"code.google.com/p/goauth2/oauth"
 )
 
+// GetTransport returns an oauth transport with a valid, not expired token.
+// GetTransport will create a mini-server on httpListenAddress for the client
+// authentication flow.
 func GetTransport(config *oauth.Config, httpListenAddress string) (*oauth.Transport, error) {
 
 	transport := &oauth.Transport{Config: config}
