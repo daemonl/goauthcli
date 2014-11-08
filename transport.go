@@ -2,7 +2,6 @@ package goauthcli
 
 import (
 	"fmt"
-	"log"
 	"net"
 	"net/http"
 
@@ -30,20 +29,23 @@ func GetTransport(config *oauth.Config, httpListenAddress string) (*oauth.Transp
 	}
 
 	fmt.Println("Token is nil or expired")
-	fmt.Println(config.AccessType)
 
 	if config.AccessType == "offline" {
 		err := transport.Refresh()
 		if err != nil {
-			log.Printf("Error refreshing transport: %s\n", err.Error())
+			fmt.Printf("Error refreshing transport: %s\n", err.Error())
 		}
 		if transport.Token != nil && !transport.Token.Expired() {
 			return transport, nil
 		}
+
 	}
 
 	chanDone := make(chan bool)
 
+	if len(httpListenAddress) < 1 {
+		return nil, fmt.Errorf("No token available, and no listen address specified")
+	}
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if transport.Token == nil || transport.Token.Expired() {
 			url := config.AuthCodeURL("")
@@ -55,12 +57,13 @@ func GetTransport(config *oauth.Config, httpListenAddress string) (*oauth.Transp
 
 	http.HandleFunc("/oauth2callback", func(w http.ResponseWriter, r *http.Request) {
 		code := r.URL.Query().Get("code")
-		log.Println(code)
+		fmt.Printf("CODE RESPONSE %s\n", code)
 		token, err := transport.Exchange(code)
 		if err != nil {
 			fmt.Fprintf(w, err.Error())
 			return
 		}
+		fmt.Printf("REFRESH TOKEN = %s\n", token.RefreshToken)
 		transport.Token = token
 		http.Redirect(w, r, "/auth", http.StatusTemporaryRedirect)
 		chanDone <- true
