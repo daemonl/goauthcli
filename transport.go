@@ -55,7 +55,7 @@ func GetTransport(config *oauth.Config, httpListenAddress string) (*oauth.Transp
 		fmt.Fprintf(w, "Transport OK, Expires %s\n", transport.Expiry.String())
 	})
 
-	http.HandleFunc("/oauth2callback", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
 		code := r.URL.Query().Get("code")
 		fmt.Printf("CODE RESPONSE %s\n", code)
 		token, err := transport.Exchange(code)
